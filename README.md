@@ -2,6 +2,10 @@
 
 > An AI-powered job discovery, fit analysis and application copilot.
 
+🌐 **Product Website:** https://joey766.github.io/ZhiyueAI/
+
+🔗 **GitHub:** https://github.com/Joey766/ZhiyueAI
+
 职跃 AI 是一款 AI 求职助手：通过简历理解和求职偏好动态发现相关岗位、分析岗位匹配与能力差距，并通过 Chrome Companion 减少跨招聘网站的重复申请信息填写。
 
 ## Problem
