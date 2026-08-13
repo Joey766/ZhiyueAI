@@ -1,0 +1,10 @@
+[client]
+# 公网演示不向访客显示 Python traceback、环境或本机路径。
+showErrorDetails = "none"
+
+[server]
+# 在上传控件前由 Streamlit 拒绝过大的请求；页面还会二次检查文件大小。
+maxUploadSize = 10
+
+[browser]
+gatherUsageStats = false

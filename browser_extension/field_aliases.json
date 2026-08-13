@@ -1,0 +1,23 @@
+{
+  "fields": {
+    "preferred_name": ["preferred name", "chosen name", "常用名"],
+    "first_name": ["first name", "given name", "名字"],
+    "last_name": ["last name", "family name", "surname", "姓氏"],
+    "full_name": ["full name", "name", "姓名"],
+    "email": ["email address", "email", "邮箱", "电子邮件"],
+    "phone": ["phone number", "phone", "mobile", "手机", "联系电话"],
+    "location": ["current location", "location", "address", "所在地", "现居地"],
+    "linkedin": ["linkedin"], "github": ["github"],
+    "portfolio": ["portfolio", "personal website", "website", "作品集", "个人网站"],
+    "school": ["university", "institution", "school", "学校", "院校"],
+    "degree": ["degree", "学历", "学位"], "major": ["field of study", "major", "专业"], "gpa": ["gpa"],
+    "graduation_date": ["expected graduation", "graduation date", "graduation", "毕业时间", "预计毕业"],
+    "work_authorization": ["legally authorized to work", "work authorization", "工作许可", "工作授权"],
+    "requires_sponsorship": ["require sponsorship", "visa sponsorship", "sponsorship", "签证支持", "需要签证"],
+    "willing_to_relocate": ["willing to relocate", "relocation", "愿意搬迁", "是否愿意搬迁"],
+    "company": ["employer", "company", "公司"], "job_title": ["job title", "position", "职位"],
+    "start_date": ["start date", "开始时间"], "end_date": ["end date", "结束时间"],
+    "responsibilities": ["responsibilities", "工作内容", "岗位职责"]
+  },
+  "open_ended_terms": ["why do you want", "why are you interested", "describe your", "additional information", "cover letter", "motivation", "tell us about", "为什么想加入", "为什么对该岗位感兴趣", "补充信息"]
+}
