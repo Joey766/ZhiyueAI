@@ -4,6 +4,21 @@ __pycache__/
 
 uploads/
 
+# User-provided documents and generated exports must stay local.
+resumes/
+exports/
+*.pdf
+*.doc
+*.docx
+*.xlsx
+
+# Local model runtimes and their caches are never source-controlled.
+.ollama/
+ollama/
+models/
+cache/
+.cache/
+
 data/.companion_access_token
 data/.application_profile_local.json
 

@@ -2,9 +2,9 @@
 
 > An AI-powered job discovery, fit analysis and application copilot.
 
-🌐 **Product Website:** https://joey766.github.io/ZhiyueAI/
+🌐 **Product Website:** Static product site only; the full AI app currently runs locally.
 
-🔗 **GitHub:** https://github.com/Joey766/ZhiyueAI
+🔗 **GitHub:** https://github.com/Joey766/zhiyue-ai
 
 职跃 AI 是一款 AI 求职助手：通过简历理解和求职偏好动态发现相关岗位、分析岗位匹配与能力差距，并通过 Chrome Companion 减少跨招聘网站的重复申请信息填写。
 
@@ -49,6 +49,15 @@ Streamlit UI
 ## Screenshots / Demo
 
 产品官网展示当前流程和产品决策。稳定的交互式 Streamlit Demo 暂不公开托管：其 AI 后端依赖本机 Ollama，因此不会在官网使用失效的临时 Tunnel 链接。
+
+## Deployment boundary
+
+The Streamlit interface and AI features are intentionally separated: the current
+inference backend calls `http://localhost:11434` and uses a locally installed
+`qwen3:1.7b` Ollama model. This is suitable for private local use and temporary
+Cloudflare Tunnel demos, but it cannot become a complete always-on cloud AI app
+without a hosted inference service or a cloud machine that runs Ollama. Neither
+model weights nor user-uploaded resumes belong in this repository.
 
 如需补充 README 截图，建议后续提供四张真实截图：Homepage、Dynamic Job Search、AI Job Analysis、Chrome Companion。
 
