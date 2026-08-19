@@ -5,7 +5,8 @@ import re
 from docx import Document
 from pypdf import PdfReader
 
-from ai.ollama_client import OllamaClient, _json_objects
+from ai.ollama_client import _json_objects
+from ai.provider import parse_resume as provider_parse_resume
 from prompts.resume_parse_prompt import RESUME_PARSE_SCHEMA, build_resume_parse_messages
 
 
@@ -63,7 +64,7 @@ def parse_resume(file_bytes, filename):
     extracted = extract_resume_text(file_bytes, filename)
     if not extracted["ok"]:
         return extracted
-    response = OllamaClient().chat_json(build_resume_parse_messages(extracted["text"]), schema=RESUME_PARSE_SCHEMA)
+    response = provider_parse_resume(build_resume_parse_messages(extracted["text"]), schema=RESUME_PARSE_SCHEMA)
     if not response["ok"]:
         return response
     parsed = validate_resume_result(response["content"])

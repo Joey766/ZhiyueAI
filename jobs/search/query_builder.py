@@ -8,7 +8,15 @@ ROLE_QUERIES = {
     "产品经理": {"primary": ["Product Manager Intern", "Product Intern", "产品经理 实习", "产品实习生"], "close": ["Technical Product Intern", "Associate Product Manager"], "adjacent": ["Product Analyst", "Product Strategy Intern"]},
 }
 
-def build_search_intent(profile: dict, preferences: dict) -> dict:
+def _intent_keywords(text: str) -> list[str]:
+    """Add only user-entered phrases that are safe as public job queries."""
+    cleaned = str(text or "").replace("，", " ").replace("、", " ")
+    known = ["AI Product", "Product Analyst", "Data Product", "Product Manager", "Data Analyst", "New Grad", "Intern", "实习", "产品经理", "产品分析师", "数据分析师", "人工智能"]
+    lower = cleaned.lower()
+    return [value for value in known if value.lower() in lower]
+
+
+def build_search_intent(profile: dict, preferences: dict, natural_language: str = "") -> dict:
     targets = preferences.get("目标岗位", [])
     groups = {"primary": [], "close": [], "adjacent": []}
     for target in targets:
@@ -24,4 +32,6 @@ def build_search_intent(profile: dict, preferences: dict) -> dict:
     stage = preferences.get("求职阶段") or preferences.get("工作类型") or ""
     if stage in {"日常实习", "暑期实习"}:
         groups["primary"] = list(dict.fromkeys(groups["primary"] + ["Intern", "实习"]))
-    return {"targets": targets, "locations": preferences.get("工作地点", []), "stage": stage, "industries": preferences.get("目标行业", []), "queries": {key: list(dict.fromkeys(value)) for key, value in groups.items()}}
+    natural_queries = _intent_keywords(natural_language)
+    groups["primary"] = list(dict.fromkeys(natural_queries + groups["primary"]))
+    return {"targets": targets, "locations": preferences.get("工作地点", []), "stage": stage, "industries": preferences.get("目标行业", []), "natural_language": natural_language.strip(), "queries": {key: list(dict.fromkeys(value)) for key, value in groups.items()}}

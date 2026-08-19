@@ -51,7 +51,7 @@ def _sources():
 
 
 def _refresh(intent=None):
-    intent = intent or build_search_intent(st.session_state.profile, st.session_state.preferences)
+    intent = intent or build_search_intent(st.session_state.profile, st.session_state.preferences, st.session_state.get("search_intent_text", ""))
     session = search_all_sources(source_signature(_sources()), intent, st.session_state.job_refresh_token)
     st.session_state.current_job_search = session
     # 临时兼容旧会话键；推荐页面主流程仅使用 current_job_search。
@@ -60,6 +60,26 @@ def _refresh(intent=None):
     st.session_state.jobs_updated_at = session["searched_at"]
     st.session_state.jobs_raw_count = session["raw_result_count"]
     st.session_state.provider_stats = session["providers"]
+    st.session_state.search_intent = intent
+
+
+def _valid_url(value):
+    parsed = urlparse(str(value or ""))
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def _render_search_intent():
+    st.markdown("### 今天想找什么机会？")
+    st.caption("用自然语言描述目标；系统会结合你的 Career Profile 与偏好生成本次真实岗位搜索。")
+    st.text_area("Search Intent", key="search_intent_text", label_visibility="collapsed", height=105, placeholder="例如：帮我找 Toronto 和 New York 的 AI Product / Product Analyst，2027 New Grad，也接受 Data Product。")
+    prefs = st.session_state.preferences
+    chips = list(prefs.get("目标岗位", [])) + list(prefs.get("工作地点", [])) + ([prefs.get("求职阶段")] if prefs.get("求职阶段") and prefs.get("求职阶段") != "都可以" else []) + list(prefs.get("目标行业", []))
+    if chips:
+        st.caption("当前理解：" + "  ·  ".join(str(item) for item in chips))
+    with st.expander("Advanced Filters", expanded=False):
+        st.caption("需要调整目标岗位、地点、阶段或行业时，可在求职偏好中修改。")
+        if st.button("编辑求职偏好"):
+            go_to("求职偏好")
 
 
 def _add_external_form():
@@ -100,13 +120,13 @@ def _render_card(job):
     with st.container(border=True):
         head, score = st.columns([7, 2], vertical_alignment="center")
         head.markdown(f"#### {job['company']} · {job['title']}")
-        parts = [f"📍 {job.get('location', '未注明')}"]
+        parts = [f"地点：{job.get('location', '未注明')}"]
         if job.get("recruitment_type"):
             parts.append(f"💼 {job['recruitment_type']}")
         if job.get("industry"):
             parts.append(f"🏢 {job['industry']}")
         head.caption("　·　".join(parts))
-        score.markdown(f'<div class="match"><small>推荐度</small>{job["recommendation_score"]}%</div>', unsafe_allow_html=True)
+        score.markdown(f'<div class="match"><small>Fit Estimate</small>{job["recommendation_score"]}%</div>', unsafe_allow_html=True)
         tag = "我的候选岗位" if job.get("source_type") == "external" else "真实岗位"
         st.caption(f"{tag} · 来源：{job['source']}")
         reasons = job.get("recommendation_reasons", [])
@@ -116,12 +136,17 @@ def _render_card(job):
         with buttons:
             if st.button("查看详情", key=f"detail_{job['id']}"):
                 st.session_state.expanded_job_id = None if st.session_state.expanded_job_id == job["id"] else job["id"]
-            if st.button("AI 分析", key=f"analyse_{job['id']}", type="primary"):
+            if st.button("查看 AI 分析", key=f"analyse_{job['id']}", type="primary"):
                 st.session_state.selected_job = job
                 st.session_state.ai_job_analysis = None
                 go_to("岗位分析")
+            if st.button("保存岗位" if job["id"] not in st.session_state.saved_job_ids else "已保存", key=f"save_{job['id']}"):
+                if job["id"] not in st.session_state.saved_job_ids:
+                    st.session_state.saved_job_ids.append(job["id"])
+                    st.session_state.saved_jobs.append(dict(job))
+                    st.success("已保存到当前会话。")
             apply_url = job.get("apply_url") or job.get("job_url")
-            if apply_url:
+            if _valid_url(apply_url):
                 if st.button("去申请（记录岗位）", key=f"prepare_{job['id']}"):
                     application_job = {key: job.get(key, "") for key in ("company", "title", "description", "requirements", "job_url", "apply_url")}
                     st.session_state.application_job = application_job
@@ -130,7 +155,9 @@ def _render_card(job):
                         st.success("已将该岗位资料同步到本机 Chrome Companion。")
                     else:
                         st.caption("已记住该岗位；启用本机 Companion 后可让扩展使用完整 JD。")
-                st.link_button("打开官方申请页", apply_url)
+                st.link_button("官方申请 ↗", apply_url)
+            elif apply_url:
+                st.caption("此岗位未提供可安全打开的官方申请链接。")
         if st.session_state.expanded_job_id == job["id"]:
             _show_details(job)
 
@@ -169,29 +196,40 @@ def _render_grouped_jobs(jobs):
 
 
 def render():
+    saved_view = st.session_state.page == "已保存岗位"
     jobs_ready = bool((st.session_state.get("current_job_search") or {}).get("jobs"))
     selected = _filtered_jobs("全部") if jobs_ready else []
     curated = curated_jobs(selected)
     total = len((st.session_state.get("current_job_search") or {}).get("jobs", []))
-    st.title(f"为你精选 {len(curated)} 个岗位" if jobs_ready else "为你精选岗位")
+    st.title("已保存岗位" if saved_view else (f"为你精选 {len(curated)} 个岗位" if jobs_ready else "寻找真实岗位"))
+    if saved_view:
+        st.caption("仅保存在当前浏览器会话；不会上传或写入你的 GitHub。")
+        saved = rank_jobs(st.session_state.saved_jobs, st.session_state.profile, st.session_state.preferences, force_include=True)
+        for job in saved:
+            _render_card(job)
+        if not saved:
+            st.info("还没有保存的岗位。浏览结果时点击“保存岗位”即可。")
+        return
     if jobs_ready:
         search = st.session_state.current_job_search
         search["recommended_count"] = len(curated)
         st.caption(f"本次发现 {search['raw_result_count']} 个潜在岗位，去重后 {search['deduplicated_count']} 个，为你精选 {len(curated)} 个机会。")
     else:
         st.caption("根据你的职业档案和求职偏好，从多个真实招聘来源寻找当前机会。")
-    st.info("结果按最匹配、相近机会和拓展机会分层。推荐度仅用于本地排序，不代表录取概率；岗位列表不会调用本地 AI。")
+    _render_search_intent()
+    st.info("Fit Estimate 仅用于帮助排序，不代表录取概率；只有你主动查看 AI 分析时才会调用 AI。")
     toolbar = st.container(horizontal=True, horizontal_alignment="distribute")
     with toolbar:
         if st.button("✨ 为我寻找岗位", type="primary"):
             st.session_state.job_refresh_token += 1
-            intent = build_search_intent(st.session_state.profile, st.session_state.preferences)
+            intent = build_search_intent(st.session_state.profile, st.session_state.preferences, st.session_state.get("search_intent_text", ""))
             with st.status("正在为你寻找岗位…", expanded=True) as status:
                 st.write("正在分析你的求职方向…")
                 st.write("正在生成搜索条件…")
-                st.write("正在搜索百度招聘、美团招聘、Greenhouse、Lever 与 Ashby…")
+                st.write("正在寻找真实岗位…")
                 _refresh(intent)
-                st.write("正在去除重复岗位并计算推荐度…")
+                st.write("正在去除重复岗位…")
+                st.write("正在计算与你的匹配度…")
                 status.update(label="岗位搜索完成", state="complete", expanded=False)
             st.rerun()
         if st.session_state.get("jobs_updated_at"):

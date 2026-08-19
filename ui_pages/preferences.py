@@ -34,7 +34,8 @@ def render():
     right.selectbox("Sponsorship 偏好", ["没有明显偏好", "优先考虑提供签证支持", "不需要签证支持"], key="pref_sponsorship")
     _setdefault("pref_startup", current.get("接受Startup", True))
     st.checkbox("接受 Startup / 创业公司", key="pref_startup")
-    if st.button("保存求职偏好", type="primary", width="stretch"):
+    save, continue_ = st.columns(2)
+    if save.button("保存求职偏好", type="secondary", width="stretch"):
         st.session_state.preferences = {
             "目标岗位": st.session_state.pref_roles, "目标行业": st.session_state.pref_industries,
             "企业类型": st.session_state.pref_company_types, "目标公司": st.session_state.pref_target_companies,
@@ -44,3 +45,14 @@ def render():
         }
         st.session_state.preferences_saved = True
         st.success("求职偏好已保存。")
+    if continue_.button("前往 AI Search Intent →", type="primary", width="stretch"):
+        st.session_state.preferences = {
+            "目标岗位": st.session_state.pref_roles, "目标行业": st.session_state.pref_industries,
+            "企业类型": st.session_state.pref_company_types, "目标公司": st.session_state.pref_target_companies,
+            "工作地点": st.session_state.pref_locations, "工作类型": st.session_state.pref_stage,
+            "求职阶段": st.session_state.pref_stage, "毕业年份": st.session_state.pref_grad_year,
+            "签证支持偏好": st.session_state.pref_sponsorship, "接受Startup": st.session_state.pref_startup,
+        }
+        st.session_state.preferences_saved = True
+        from utils.session import go_to
+        go_to("岗位推荐")

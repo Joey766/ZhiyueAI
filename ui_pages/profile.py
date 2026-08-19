@@ -210,9 +210,14 @@ def render():
     for column,label,key,options in [(a,"当前是否拥有合法工作资格？","work_authorization",["未填写","是","否","视国家 / 地区而定"]),(b,"未来是否需要公司提供工作签证支持？","visa_support",["未填写","是","否","不确定"]),(a,"是否愿意搬迁？","relocation",["未填写","是","否","视岗位而定"])]:
         with column: ensure_widget("app_"+key,app.get(key) or options[0]); st.radio(label,options,key="app_"+key,horizontal=True)
     ensure_widget("app_start_date",app.get("start_date","")); b.text_input("最早可入职时间",key="app_start_date",placeholder="例如：2026-06")
-    if st.button("保存我的档案",type="primary",width="stretch"):
-        sync(); st.session_state.profile_saved=True
-        st.success("个人档案已保存")
+    save, continue_ = st.columns(2)
+    if save.button("保存我的档案", type="secondary", width="stretch"):
+        sync(); st.session_state.profile_saved=True; st.session_state.onboarding_complete = True
+        st.success("Career Profile 已保存。")
+    if continue_.button("保存并开始找工作 →", type="primary", width="stretch"):
+        sync(); st.session_state.profile_saved=True; st.session_state.onboarding_complete = True
+        from utils.session import go_to
+        go_to("求职偏好")
     if os.getenv("ZHIYUE_LOCAL_COMPANION") == "1":
         st.divider()
         if st.button("同步到本机 Chrome Companion", width="stretch"):

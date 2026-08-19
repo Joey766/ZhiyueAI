@@ -20,7 +20,7 @@ def default_profile():
 
 def init_state():
     defaults = {
-        "page": "首页", "profile_saved": False, "preferences_saved": False,
+        "page": "欢迎", "profile_saved": False, "preferences_saved": False,
         "selected_job": None, "uploaded_resume_name": None,
         "profile": default_profile(), "preferences": {}, "expanded_job_id": None,
         "ai_job_analysis": None,
@@ -28,6 +28,7 @@ def init_state():
         "real_jobs": [], "current_job_search": None, "application_job": None,
         "job_source_errors": [], "jobs_updated_at": None, "jobs_raw_count": 0,
         "job_refresh_token": 0, "custom_job_sources": [], "saved_jobs": [], "show_all_matching_jobs": False,
+        "search_intent_text": "", "search_intent": None, "onboarding_complete": False, "saved_job_ids": [],
     }
     for key, value in defaults.items():
         if key not in st.session_state:
